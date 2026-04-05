@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="W·Session">
+<meta name="theme-color" content="#0d1f35">
+<title>Wottrich · Session</title>
+<style>
+:root{
+  --bg:#0a0a0a;--surf:#161616;--surf2:#1f1f1f;--surf3:#252525;
+  --b1:rgba(255,255,255,0.07);--b2:rgba(255,255,255,0.13);
+  --text:#f0f0f0;--muted:#888;--faint:#444;
+  --green:#1a9e4a;--gt:#4cd97b;--gd:rgba(26,158,74,0.15);--gb:rgba(26,158,74,0.4);
+  --blue:#1a6fb5;--bt:#5aaff0;--bd:rgba(26,111,181,0.15);--bb2:rgba(26,111,181,0.4);
+  --red:#b52020;--rt:#f07070;--rd:rgba(181,32,32,0.12);--rb:rgba(181,32,32,0.4);
+  --amber:#ba7517;--at:#FAC775;--ab:rgba(239,159,39,0.4);--ad:rgba(239,159,39,0.12);
+  --purple:#6d3ec7;--pt:#b39dff;--pd:rgba(109,62,199,0.15);--pb:rgba(109,62,199,0.4);
+  --mono:'Courier New',monospace;--r:10px;--rs:6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow:hidden;}
+body{display:flex;flex-direction:column;}
+
+.app-header{display:flex;align-items:center;gap:10px;padding:11px 16px 10px;border-bottom:0.5px solid var(--b1);background:var(--surf);flex-shrink:0;}
+.app-logo{width:30px;height:30px;background:#0d1f35;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.app-title{font-size:15px;font-weight:600;color:var(--text);}
+.app-sub{font-size:10px;color:var(--muted);}
+
+.tabs{display:flex;border-bottom:0.5px solid var(--b1);background:var(--surf);flex-shrink:0;}
+.tab{flex:1;padding:11px 0;font-size:13px;text-align:center;cursor:pointer;background:none;border:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-0.5px;font-family:inherit;}
+.tab.active{color:var(--text);border-bottom-color:var(--gt);}
+
+.view{flex:1;overflow:hidden;display:none;}
+.view.active{display:flex;flex-direction:column;}
+.scroll{flex:1;overflow-y:auto;padding:1rem;}
+
+/* SHARED */
+.slbl{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin:14px 0 8px;}
+.slbl:first-child{margin-top:0;}
+.empty-h{text-align:center;color:var(--faint);font-size:13px;padding:2rem 0;}
+.field{margin-bottom:10px;}
+.field label{display:block;font-size:11px;color:var(--faint);margin-bottom:4px;}
+.field select,.field input{width:100%;padding:10px 12px;border-radius:var(--rs);border:.5px solid var(--b2);background:var(--surf2);color:var(--text);font-size:14px;font-family:inherit;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 10 7'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+.field input{background-image:none;padding-right:12px;}
+.btn-primary{width:100%;padding:14px;border-radius:var(--r);border:none;background:var(--green);color:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:8px;}
+.btn-primary:active{transform:scale(.98);}
+.btn-primary:disabled{opacity:.3;cursor:default;}
+.btn-secondary{width:100%;padding:12px;border-radius:var(--r);border:.5px solid var(--b2);background:none;color:var(--muted);font-size:14px;cursor:pointer;font-family:inherit;margin-top:6px;}
+.btn-ai{width:100%;padding:13px;border-radius:var(--r);border:none;background:#0d1f35;color:var(--bt);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn-ai:active{transform:scale(.98);}
+.btn-ai:disabled{opacity:.3;cursor:default;}
+.ai-dot{width:8px;height:8px;border-radius:50%;background:var(--gt);animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* TODAY CARD */
+.today-card{background:var(--surf);border-radius:var(--r);border:.5px solid var(--b1);padding:1rem 1.25rem;margin-bottom:12px;}
+.today-date{font-size:11px;color:var(--faint);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px;}
+.today-type{font-size:20px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.today-phase{font-size:12px;color:var(--muted);}
+.today-pct{display:inline-block;font-size:11px;font-family:var(--mono);background:var(--gd);color:var(--gt);border:.5px solid var(--gb);border-radius:4px;padding:2px 8px;margin-top:4px;}
+.today-rest{font-size:13px;color:var(--faint);padding:1.5rem 0;text-align:center;}
+
+/* BLOCK CARDS */
+.block-card{border-radius:var(--r);border-left:3px solid var(--b2);background:var(--surf);margin-bottom:8px;overflow:hidden;}
+.block-card.velocity{border-left-color:var(--rt);}
+.block-card.rv{border-left-color:var(--at);}
+.block-card.strength{border-left-color:var(--bt);}
+.block-card.technique,.block-card.cooldown,.block-card.taper{border-left-color:var(--gt);}
+.block-card.warmup,.block-card.pateo{border-left-color:var(--faint);}
+.block-card.preserie{border-left-color:var(--pt);}
+.block-card.control{border-left-color:var(--rt);}
+.block-header{display:flex;align-items:center;gap:8px;padding:9px 14px 6px;}
+.block-tag{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.5px;padding:2px 6px;border-radius:4px;flex-shrink:0;}
+.block-tag.velocity,.block-tag.control{background:var(--rd);color:var(--rt);}
+.block-tag.rv{background:var(--ad);color:var(--at);}
+.block-tag.strength{background:var(--bd);color:var(--bt);}
+.block-tag.technique,.block-tag.cooldown,.block-tag.taper{background:var(--gd);color:var(--gt);}
+.block-tag.warmup,.block-tag.pateo{background:var(--surf2);color:var(--muted);}
+.block-tag.preserie{background:var(--pd);color:var(--pt);}
+.block-name{font-size:14px;font-weight:500;color:var(--text);flex:1;}
+.block-edit-btn{background:none;border:none;color:var(--faint);font-size:16px;cursor:pointer;padding:0 4px;}
+.block-details{padding:0 14px 8px;display:flex;flex-wrap:wrap;gap:6px;}
+.bchip{background:var(--surf2);border-radius:var(--rs);padding:4px 9px;}
+.bchip-lbl{font-size:9px;color:var(--faint);display:block;text-transform:uppercase;letter-spacing:.3px;}
+.bchip-val{font-family:var(--mono);font-size:13px;color:var(--text);}
+.bchip-val.tgt{color:var(--gt);}
+.block-note{padding:0 14px 8px;font-size:11px;color:var(--faint);font-style:italic;line-height:1.4;}
+.block-edit-panel{display:none;border-top:.5px solid var(--b1);padding:8px 14px;flex-wrap:wrap;gap:8px;}
+.block-edit-panel.open{display:flex;}
+.ef{display:flex;flex-direction:column;gap:3px;flex:1;min-width:70px;}
+.ef label{font-size:10px;color:var(--faint);text-transform:uppercase;}
+.ef input{padding:6px 8px;border-radius:var(--rs);border:.5px solid var(--b2);background:var(--surf3);color:var(--text);font-size:13px;font-family:var(--mono);width:100%;}
+.ea{padding:6px 12px;border-radius:var(--rs);border:none;background:var(--green);color:#fff;font-size:12px;cursor:pointer;font-family:inherit;align-self:flex-end;}
+
+/* AI LOADING */
+.ai-loading{background:var(--surf);border-radius:var(--r);border:.5px solid var(--bb2);padding:1.5rem;text-align:center;margin-bottom:12px;}
+.ai-loading-title{font-size:14px;color:var(--bt);margin-bottom:8px;}
+.ai-loading-dots{display:flex;justify-content:center;gap:6px;margin-top:8px;}
+.ai-loading-dot{width:8px;height:8px;border-radius:50%;background:var(--bt);animation:pulse 1.2s infinite;}
+.ai-loading-dot:nth-child(2){animation-delay:.4s;}
+.ai-loading-dot:nth-child(3){animation-delay:.8s;}
+.ai-error{background:var(--rd);border:.5px solid var(--rb);border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--rt);margin-bottom:12px;}
+
+/* EXECUTE */
+.exec-layout{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.exec-prog-bar-wrap{padding:8px 14px;border-bottom:.5px solid var(--b1);background:var(--surf);display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.exec-prog-bar{flex:1;height:4px;background:var(--surf2);border-radius:2px;overflow:hidden;}
+.exec-prog-fill{height:100%;background:var(--gt);border-radius:2px;transition:width .3s;}
+.exec-prog-txt{font-size:11px;color:var(--muted);white-space:nowrap;}
+.exec-block-nm{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.8px;text-align:center;padding:8px 14px 0;color:var(--muted);flex-shrink:0;}
+.exec-phase{font-size:20px;font-weight:500;text-align:center;padding:2px 14px;flex-shrink:0;letter-spacing:.3px;}
+.exec-phase.repping{color:var(--gt);}
+.exec-phase.resting{color:var(--bt);}
+.exec-phase.done{color:var(--at);}
+.exec-tgt{font-size:12px;color:var(--faint);text-align:center;font-family:var(--mono);padding:0 14px 2px;flex-shrink:0;}
+.exec-tgt span{color:var(--gt);}
+.exec-time{font-family:var(--mono);font-size:68px;font-weight:400;letter-spacing:-2px;line-height:1;text-align:center;padding:2px 14px 4px;flex-shrink:0;transition:color .2s;}
+.exec-time.repping{color:var(--gt);}
+.exec-time.resting{color:var(--bt);}
+.exec-time.done{color:var(--at);}
+.exec-rep-info{font-family:var(--mono);font-size:15px;color:var(--muted);text-align:center;padding:0 14px 4px;flex-shrink:0;}
+.exec-btns{display:flex;gap:8px;padding:2px 14px 8px;flex-shrink:0;}
+.eb{flex:1;padding:14px 0;border-radius:var(--r);border:none;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;}
+.eb:active{transform:scale(.96);}
+.eb:disabled{opacity:.2;cursor:default;}
+.eb.start{background:var(--green);color:#fff;}
+.eb.mark{background:var(--blue);color:#fff;}
+.eb.next-rep{background:var(--green);color:#fff;}
+.eb.stop{background:var(--red);color:#fff;font-size:13px;}
+.eb.next-block{background:var(--amber);color:#0a0a0a;font-weight:600;}
+.eb.skip{background:var(--surf2);border:.5px solid var(--b2);color:var(--muted);font-size:12px;}
+.exec-skip-row{display:flex;gap:6px;padding:0 14px 6px;flex-shrink:0;}
+.exec-reps-list{flex:1;overflow-y:auto;border-top:.5px solid var(--b1);margin:0 14px;}
+.rep-row{display:flex;align-items:baseline;padding:5px 0;border-bottom:.5px solid var(--b1);}
+.rn{font-size:11px;color:var(--faint);width:22px;}
+.rt2{font-family:var(--mono);font-size:15px;color:var(--text);flex:1;text-align:right;}
+.rd2{font-family:var(--mono);font-size:11px;width:68px;text-align:right;}
+.rp2{font-family:var(--mono);font-size:12px;font-weight:500;width:56px;text-align:right;}
+
+/* SUMMARY */
+.sum-section{background:var(--surf);border-radius:var(--r);border:.5px solid var(--b1);margin-bottom:10px;overflow:hidden;}
+.sum-sec-hdr{display:flex;align-items:center;gap:8px;padding:9px 14px;}
+.sum-sec-name{font-size:14px;font-weight:500;color:var(--text);flex:1;}
+.sum-sec-badge{font-size:11px;color:var(--muted);font-family:var(--mono);}
+.sum-stats{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 10px;}
+.stat{background:var(--surf2);border-radius:var(--rs);padding:5px 10px;flex:1;min-width:75px;}
+.stat-lbl{font-size:9px;color:var(--faint);display:block;text-transform:uppercase;letter-spacing:.3px;margin-bottom:1px;}
+.stat-val{font-family:var(--mono);font-size:15px;color:var(--text);}
+.stat-val.good{color:var(--gt);}
+.stat-val.warn{color:var(--at);}
+.stat-val.bad{color:var(--rt);}
+.sum-rep-hdr{display:flex;font-size:9px;color:var(--faint);text-transform:uppercase;padding:4px 14px;border-top:.5px solid var(--b1);border-bottom:.5px solid var(--b1);}
+.sum-rep-hdr span:first-child{width:22px;}
+.sum-rep-hdr span:nth-child(2){flex:1;text-align:right;}
+.sum-rep-hdr span:nth-child(3){width:70px;text-align:right;}
+.sum-rep-hdr span:nth-child(4){width:58px;text-align:right;}
+.sum-rep-hdr span:nth-child(5){width:72px;text-align:right;color:var(--bt);}
+.sum-rep-row{display:flex;align-items:baseline;padding:5px 14px;border-bottom:.5px solid var(--b1);}
+.sum-rep-row:last-child{border-bottom:none;}
+.srn{font-size:11px;color:var(--faint);width:22px;}
+.srt{font-family:var(--mono);font-size:15px;color:var(--text);flex:1;text-align:right;}
+.srd{font-family:var(--mono);font-size:11px;width:70px;text-align:right;}
+.srp{font-family:var(--mono);font-size:12px;font-weight:500;width:58px;text-align:right;}
+.srr{font-family:var(--mono);font-size:11px;width:72px;text-align:right;color:var(--bt);}
+.c-good{color:var(--gt);}
+.c-warn{color:var(--at);}
+.c-bad{color:var(--rt);}
+.c-none{color:var(--faint);}
+.sum-export{display:flex;gap:8px;margin-bottom:12px;}
+.btn-exp{flex:1;padding:11px 0;border-radius:var(--rs);font-size:13px;cursor:pointer;font-family:inherit;border:.5px solid var(--b2);background:none;}
+.btn-exp.xlsx{border-color:var(--gb);color:var(--gt);background:var(--gd);}
+.btn-exp.pdf{border-color:var(--ab);color:var(--at);}
+.btn-exp:active{transform:scale(.97);}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="app-logo">
+    <svg viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+      <rect width="30" height="30" rx="7" fill="#0d1f35"/>
+      <polyline points="3,15 7,15 8.5,10.5 10,19.5 12,11.5 13.5,18.5 15,15 19,15 20.5,11 22,19 23.5,12 25,18 27,15"
+        fill="none" stroke="#1D9E75" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="15" y="28" font-family="Helvetica Neue,Arial,sans-serif" font-size="9" font-weight="800" text-anchor="middle" fill="#fff">W</text>
+    </svg>
+  </div>
+  <div>
+    <div class="app-title">Wottrich · Session</div>
+    <div class="app-sub">Macrociclo 2026 · Mariano</div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab active" id="tab-plan" onclick="showTab('plan')">Sesión</button>
+  <button class="tab" id="tab-exec" onclick="showTab('exec')">Cronómetro</button>
+  <button class="tab" id="tab-summary" onclick="showTab('summary')">Resumen</button>
+</div>
+
+<!-- PLAN -->
+<div class="view active" id="view-plan">
+  <div class="scroll">
+    <div class="slbl">Atleta</div>
+    <div class="field">
+      <select id="sel-athlete"><option value="">Seleccionar...</option></select>
+    </div>
+    <div id="today-section"></div>
+    <div id="blocks-section" style="display:none">
+      <div class="slbl">Bloques generados</div>
+      <div id="blocks-list"></div>
+      <button class="btn-primary" id="btn-start">Iniciar cronómetro ▶</button>
+      <button class="btn-secondary" id="btn-regen">↺ Regenerar con IA</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXEC -->
+<div class="view" id="view-exec">
+  <div class="exec-layout">
+    <div class="exec-prog-bar-wrap">
+      <div class="exec-prog-bar"><div class="exec-prog-fill" id="exec-prog-fill" style="width:0%"></div></div>
+      <div class="exec-prog-txt" id="exec-prog-txt">0/0</div>
+    </div>
+    <div class="exec-block-nm" id="exec-block-nm"></div>
+    <div class="exec-phase" id="exec-phase"></div>
+    <div class="exec-tgt" id="exec-tgt"></div>
+    <div class="exec-time" id="exec-time">00:00.000</div>
+    <div class="exec-rep-info" id="exec-rep-info"></div>
+    <div class="exec-btns" id="exec-btns"></div>
+    <div class="exec-skip-row">
+      <button class="eb skip" id="btn-skip" style="flex:1">Saltar bloque →</button>
+      <button class="eb skip" id="btn-end" style="flex:1">Terminar sesión</button>
+    </div>
+    <div class="exec-reps-list" id="exec-reps-list"></div>
+  </div>
+</div>
+
+<!-- SUMMARY -->
+<div class="view" id="view-summary">
+  <div class="scroll" id="summary-content">
+    <div class="empty-h">Completá una sesión para ver el resumen.</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+// ── MACROCICLO 2026 ─────────────────────────────────────────────
+var MC = {
+  "2026-03-30":{type:"velocity",desc:"Velocidad pura 25m",phase:"Prep. General S1",pctMin:95,pctMax:98,dist:"25m",reps:6,ri:180},
+  "2026-03-31":{type:"rv",desc:"RV 100m libre",phase:"Prep. General S1",pctMin:82,pctMax:82,reps:6,ri:120},
+  "2026-04-01":{type:"strength",desc:"Fuerza/Potencia — Pull buoy",phase:"Prep. General S1",pctMin:70,pctMax:75,material:"Pull buoy",dist:"50m",reps:8,ri:30},
+  "2026-04-02":{type:"velocity",desc:"Velocidad pura 25m",phase:"Prep. General S1",pctMin:95,pctMax:98,dist:"25m",reps:6,ri:180},
+  "2026-04-03":{type:"technique",desc:"Técnica/Descarga suave",phase:"Prep. General S1",pctMin:70,pctMax:75},
+  "2026-04-04":{type:"control",desc:"Control 50m con partida",phase:"Prep. General S1",pctMin:95,pctMax:100,dist:"50m",reps:2,ri:540},
+  "2026-04-05":{type:"rest",desc:"Descanso"},
+  "2026-04-06":{type:"velocity",desc:"Velocidad pura 25m",phase:"Prep. General S2",pctMin:95,pctMax:98,dist:"25m",reps:6,ri:180},
+  "2026-04-07":{type:"rv",desc:"RV 100m libre",phase:"Prep. General S2",pctMin:84,pctMax:84,reps:6,ri:120},
+  "2026-04-08":{type:"strength",desc:"Fuerza/Potencia — Paletas+pull buoy",phase:"Prep. General S2",pctMin:70,pctMax:75,material:"Paletas+Pull buoy",dist:"50m",reps:6,ri:45},
+  "2026-04-09":{type:"velocity",desc:"Velocidad pura 25m",phase:"Prep. General S2",pctMin:95,pctMax:98,dist:"25m",reps:6,ri:180},
+  "2026-04-10":{type:"technique",desc:"Técnica/Descarga suave",phase:"Prep. General S2",pctMin:70,pctMax:75},
+  "2026-04-11":{type:"control",desc:"Control 100m con partida",phase:"Prep. General S2",pctMin:95,pctMax:100,dist:"100m",reps:2,ri:540},
+  "2026-04-12":{type:"rest",desc:"Descanso"},
+  "2026-04-13":{type:"technique",desc:"Descarga — vel suave",phase:"Descarga previa",pctMin:65,pctMax:65},
+  "2026-04-20":{type:"velocity",desc:"Velocidad pura 15m+25m",phase:"Prep. Específica S4",pctMin:97,pctMax:100,dist:"25m",reps:6,ri:180},
+  "2026-04-21":{type:"rv",desc:"RV 100m libre",phase:"Prep. Específica S4",pctMin:84,pctMax:86,reps:8,ri:120},
+  "2026-04-22":{type:"strength",desc:"Fuerza/Potencia — Paracaídas",phase:"Prep. Específica S4",pctMin:70,pctMax:75,material:"Paracaídas",dist:"25m",reps:6,ri:180},
+  "2026-04-23":{type:"velocity",desc:"Velocidad pura 15m+25m",phase:"Prep. Específica S4",pctMin:97,pctMax:100,dist:"25m",reps:6,ri:180},
+  "2026-04-24":{type:"technique",desc:"Técnica/Descarga suave",phase:"Prep. Específica S4",pctMin:70,pctMax:75},
+  "2026-04-25":{type:"control",desc:"Control 200m con partida",phase:"Prep. Específica S4",pctMin:90,pctMax:95,dist:"200m",reps:1,ri:0},
+  "2026-04-26":{type:"rest",desc:"Descanso"},
+  "2026-04-27":{type:"velocity",desc:"Velocidad pura 15m+25m",phase:"Prep. Específica S5",pctMin:97,pctMax:100,dist:"25m",reps:6,ri:180},
+  "2026-04-28":{type:"rv",desc:"RV 100m libre",phase:"Prep. Específica S5",pctMin:86,pctMax:88,reps:8,ri:120},
+  "2026-04-29":{type:"strength",desc:"Fuerza/Potencia — Elásticos",phase:"Prep. Específica S5",pctMin:70,pctMax:75,material:"Elásticos",dist:"15m",reps:8,ri:180},
+  "2026-04-30":{type:"velocity",desc:"Velocidad pura 15m+25m",phase:"Prep. Específica S5",pctMin:97,pctMax:100,dist:"25m",reps:6,ri:180},
+  "2026-05-01":{type:"technique",desc:"Técnica/Descarga suave",phase:"Prep. Específica S5",pctMin:70,pctMax:75},
+  "2026-05-02":{type:"control",desc:"Control 50m con partida",phase:"Prep. Específica S5",pctMin:95,pctMax:100,dist:"50m",reps:2,ri:540},
+  "2026-05-03":{type:"rest",desc:"Descanso"},
+  "2026-05-04":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Prep. Específica S6",pctMin:97,pctMax:100,dist:"25m",reps:6,ri:180},
+  "2026-05-05":{type:"rv",desc:"RV 100m libre",phase:"Prep. Específica S6",pctMin:88,pctMax:90,reps:8,ri:120},
+  "2026-05-06":{type:"strength",desc:"Fuerza/Potencia — Paletas+pull buoy",phase:"Prep. Específica S6",pctMin:70,pctMax:75,material:"Paletas+Pull buoy",dist:"50m",reps:6,ri:45},
+  "2026-05-07":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Prep. Específica S6",pctMin:97,pctMax:100,dist:"25m",reps:6,ri:180},
+  "2026-05-08":{type:"technique",desc:"Técnica/Descarga suave",phase:"Prep. Específica S6",pctMin:70,pctMax:75},
+  "2026-05-09":{type:"control",desc:"Control 100m con partida",phase:"Prep. Específica S6",pctMin:92,pctMax:97,dist:"100m",reps:2,ri:540},
+  "2026-05-10":{type:"rest",desc:"Descanso"},
+  "2026-05-11":{type:"technique",desc:"Descarga — vel suave",phase:"Descarga S7",pctMin:80,pctMax:80},
+  "2026-05-12":{type:"rv",desc:"Descarga — RV 80% 2×3",phase:"Descarga S7",pctMin:80,pctMax:80,reps:6,ri:120},
+  "2026-05-13":{type:"strength",desc:"Descarga — Fuerza suave pull buoy",phase:"Descarga S7",pctMin:70,pctMax:70,material:"Pull buoy",dist:"50m",reps:6,ri:30},
+  "2026-05-14":{type:"technique",desc:"Descarga — vel suave",phase:"Descarga S7",pctMin:80,pctMax:80},
+  "2026-05-15":{type:"technique",desc:"Descarga — Técnica suave",phase:"Descarga S7",pctMin:70,pctMax:70},
+  "2026-05-16":{type:"rest",desc:"Descanso activo (sin control)"},
+  "2026-05-17":{type:"rest",desc:"Descanso"},
+  "2026-05-18":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Prep. Específica S8",pctMin:97,pctMax:100,dist:"25m",reps:6,ri:180},
+  "2026-05-19":{type:"rv",desc:"RV 100m libre",phase:"Prep. Específica S8",pctMin:88,pctMax:90,reps:10,ri:120},
+  "2026-05-20":{type:"strength",desc:"Fuerza/Potencia — Paracaídas+paletas",phase:"Prep. Específica S8",pctMin:70,pctMax:75,material:"Paracaídas+Paletas",dist:"25m",reps:6,ri:180},
+  "2026-05-21":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Prep. Específica S8",pctMin:97,pctMax:100,dist:"25m",reps:6,ri:180},
+  "2026-05-22":{type:"technique",desc:"Técnica/Descarga suave",phase:"Prep. Específica S8",pctMin:70,pctMax:75},
+  "2026-05-23":{type:"control",desc:"Control 200m con partida",phase:"Prep. Específica S8",pctMin:90,pctMax:95,dist:"200m",reps:1,ri:0},
+  "2026-05-24":{type:"rest",desc:"Descanso"},
+  "2026-05-25":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Prep. Específica S9",pctMin:97,pctMax:100,dist:"25m",reps:8,ri:180},
+  "2026-05-26":{type:"rv",desc:"RV 100m libre",phase:"Prep. Específica S9",pctMin:89,pctMax:90,reps:10,ri:120},
+  "2026-05-27":{type:"strength",desc:"Fuerza/Potencia — Elásticos+paletas",phase:"Prep. Específica S9",pctMin:70,pctMax:75,material:"Elásticos+Paletas",dist:"15m",reps:8,ri:180},
+  "2026-05-28":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Prep. Específica S9",pctMin:97,pctMax:100,dist:"25m",reps:8,ri:180},
+  "2026-05-29":{type:"technique",desc:"Técnica/Descarga suave",phase:"Prep. Específica S9",pctMin:70,pctMax:75},
+  "2026-05-30":{type:"control",desc:"Control 50m con partida",phase:"Prep. Específica S9",pctMin:95,pctMax:100,dist:"50m",reps:2,ri:540},
+  "2026-05-31":{type:"rest",desc:"Descanso"},
+  "2026-06-01":{type:"technique",desc:"Descarga — vel suave",phase:"Descarga S10",pctMin:80,pctMax:80},
+  "2026-06-02":{type:"rv",desc:"Descarga — RV 80% 2×3",phase:"Descarga S10",pctMin:80,pctMax:80,reps:6,ri:120},
+  "2026-06-03":{type:"strength",desc:"Descarga — Fuerza suave pull buoy",phase:"Descarga S10",pctMin:70,pctMax:70,material:"Pull buoy",dist:"50m",reps:6,ri:30},
+  "2026-06-04":{type:"technique",desc:"Descarga — vel suave",phase:"Descarga S10",pctMin:80,pctMax:80},
+  "2026-06-05":{type:"technique",desc:"Descarga — Técnica suave",phase:"Descarga S10",pctMin:70,pctMax:70},
+  "2026-06-06":{type:"rest",desc:"Descanso activo"},
+  "2026-06-07":{type:"rest",desc:"Descanso"},
+  "2026-06-08":{type:"technique",desc:"Activación suave pre-comp",phase:"Pre-competencia",pctMin:70,pctMax:70},
+  "2026-06-09":{type:"technique",desc:"Activación suave pre-comp",phase:"Pre-competencia",pctMin:70,pctMax:70},
+  "2026-06-15":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Competición S11",pctMin:97,pctMax:100,dist:"25m",reps:8,ri:180},
+  "2026-06-16":{type:"rv",desc:"RV 100m libre",phase:"Competición S11",pctMin:90,pctMax:92,reps:8,ri:120},
+  "2026-06-17":{type:"strength",desc:"Fuerza/Potencia — Paletas",phase:"Competición S11",pctMin:70,pctMax:75,material:"Paletas",dist:"50m",reps:6,ri:45},
+  "2026-06-18":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Competición S11",pctMin:97,pctMax:100,dist:"25m",reps:8,ri:180},
+  "2026-06-19":{type:"technique",desc:"Técnica/Descarga suave",phase:"Competición S11",pctMin:70,pctMax:75},
+  "2026-06-20":{type:"control",desc:"Control 100m con partida",phase:"Competición S11",pctMin:95,pctMax:100,dist:"100m",reps:2,ri:540},
+  "2026-06-21":{type:"rest",desc:"Descanso"},
+  "2026-06-22":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Competición S12",pctMin:97,pctMax:100,dist:"25m",reps:8,ri:180},
+  "2026-06-23":{type:"rv",desc:"RV 100m libre",phase:"Competición S12",pctMin:92,pctMax:94,reps:8,ri:120},
+  "2026-06-24":{type:"strength",desc:"Fuerza/Potencia — Paracaídas",phase:"Competición S12",pctMin:70,pctMax:75,material:"Paracaídas",dist:"25m",reps:6,ri:180},
+  "2026-06-25":{type:"velocity",desc:"Velocidad pura 15m+vuelta",phase:"Competición S12",pctMin:97,pctMax:100,dist:"25m",reps:8,ri:180},
+  "2026-06-26":{type:"technique",desc:"Técnica/Descarga suave",phase:"Competición S12",pctMin:70,pctMax:75},
+  "2026-06-27":{type:"control",desc:"Control 200m con partida",phase:"Competición S12",pctMin:92,pctMax:97,dist:"200m",reps:1,ri:0},
+  "2026-06-28":{type:"rest",desc:"Descanso"},
+  "2026-06-29":{type:"technique",desc:"Descarga — vel suave",phase:"Descarga S13",pctMin:82,pctMax:82},
+  "2026-06-30":{type:"rv",desc:"Descarga — RV 82% 2×2",phase:"Descarga S13",pctMin:82,pctMax:82,reps:4,ri:120},
+  "2026-07-01":{type:"strength",desc:"Descarga — Fuerza suave pull buoy",phase:"Descarga S13",pctMin:70,pctMax:70,material:"Pull buoy",dist:"50m",reps:6,ri:30},
+  "2026-07-02":{type:"technique",desc:"Descarga — vel suave",phase:"Descarga S13",pctMin:82,pctMax:82},
+  "2026-07-03":{type:"technique",desc:"Descarga — Técnica suave",phase:"Descarga S13",pctMin:70,pctMax:70},
+  "2026-07-04":{type:"rest",desc:"Descanso activo (sin control)"},
+  "2026-07-05":{type:"rest",desc:"Descanso"},
+  "2026-07-06":{type:"taper",desc:"Taper — Partidas calidad SIN GYM",phase:"Taper S14",pctMin:97,pctMax:100,dist:"15m",reps:6,ri:180},
+  "2026-07-07":{type:"rv",desc:"Taper — RV 93-95% 2×2",phase:"Taper S14",pctMin:93,pctMax:95,reps:4,ri:300},
+  "2026-07-08":{type:"technique",desc:"Taper — Técnica + activación",phase:"Taper S14",pctMin:70,pctMax:75},
+  "2026-07-09":{type:"taper",desc:"Taper — Partidas 15m SIN GYM",phase:"Taper S14",pctMin:97,pctMax:100,dist:"15m",reps:4,ri:180},
+  "2026-07-10":{type:"taper",desc:"Taper — 2×50 libre 95%",phase:"Taper S14",pctMin:95,pctMax:95,dist:"50m",reps:2,ri:540},
+  "2026-07-11":{type:"control",desc:"Taper — Control 50m con partida",phase:"Taper S14",pctMin:93,pctMax:95,dist:"50m",reps:2,ri:540},
+  "2026-07-12":{type:"rest",desc:"Descanso"},
+  "2026-07-13":{type:"taper",desc:"Taper final — Activación+2×15m",phase:"Taper Final S15",pctMin:97,pctMax:100,dist:"15m",reps:2,ri:180},
+  "2026-07-14":{type:"taper",desc:"Taper final — 1 salida + activación",phase:"Taper Final S15",pctMin:95,pctMax:95,dist:"50m",reps:1,ri:0},
+  "2026-07-15":{type:"competition",desc:"SELECTIVA — COMPETENCIA PRINCIPAL"}
+};
+
+// ── UTILS ───────────────────────────────────────────────────────
+function fmt(ms){if(!ms||ms<=0)return"00:00.000";var m=Math.floor(ms/60000),s=Math.floor((ms%60000)/1000),mil=Math.floor(ms%1000);return p2(m)+":"+p2(s)+"."+p3(mil);}
+function fmtS(ms){return Math.floor(ms/1000)+"."+p3(Math.floor(ms%1000))+"s";}
+function fmtSec(s){if(!s)return"—";var m=Math.floor(s/60),ss=s%60;return m>0?m+"min "+ss+"s":ss+"s";}
+function p2(n){return String(n).padStart(2,"0");}
+function p3(n){return String(n).padStart(3,"0");}
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function todayKey(){var d=new Date(),m=String(d.getMonth()+1).padStart(2,"0"),dd=String(d.getDate()).padStart(2,"0");return d.getFullYear()+"-"+m+"-"+dd;}
+
+function calcComp(actual,target){
+  if(!target||target<=0)return null;
+  var diff=actual-target,pct=(target/actual)*100;
+  return{diff:diff,diffStr:(diff>=0?"+":"")+((diff/1000).toFixed(3))+"s",pctStr:pct.toFixed(1)+"%",cls:pct>=97?"c-good":pct>=90?"c-warn":"c-bad"};
+}
+function msTarget(refMs,pct){return refMs>0&&pct>0?Math.round(refMs/(pct/100)):0;}
+
+// ── PROFILES ────────────────────────────────────────────────────
+function getProfiles(){try{return JSON.parse(localStorage.getItem("swim-profiles")||"[]");}catch(e){return[];}}
+function getProfile(name){return getProfiles().find(function(p){return p.name.toLowerCase()===name.toLowerCase();});}
+function parseTime(str){
+  if(!str||!str.trim())return 0;
+  str=str.trim();var ms=0,ci=str.indexOf(":");
+  if(ci!==-1)ms=(parseFloat(str.slice(0,ci))||0)*60000+(parseFloat(str.slice(ci+1))||0)*1000;
+  else ms=(parseFloat(str)||0)*1000;
+  return Math.round(ms);
+}
+var DIST_KEY={
+  "15m":"15m desde pared","15m con partida":"15m con partida",
+  "25m":"25m Libre","25m con partida":"25m Libre con partida",
+  "50m":"50m Libre","50m con partida":"50m Libre con partida",
+  "100m":"100m Libre","100m con partida":"100m Libre con partida",
+  "200m":"200m Libre","200m con partida":"200m Libre con partida"
+};
+function getRef(athleteName,dist){
+  var p=getProfile(athleteName);if(!p||!p.refs)return 0;
+  var key=DIST_KEY[dist]||dist;
+  return parseTime(p.refs[key]||"");
+}
+
+// ── SESSION STATE ────────────────────────────────────────────────
+var S={athleteName:"",todayEntry:null,blocks:[],currentBlockIdx:0,currentRepN:0,
+  phase:"idle",repStart:0,restStart:0,repElapsed:0,restElapsed:0,raf:null,completedBlocks:[]};
+
+// ── PLAN TAB ────────────────────────────────────────────────────
+function loadAthletes(){
+  var sel=document.getElementById("sel-athlete");
+  var profiles=getProfiles();
+  sel.innerHTML='<option value="">Seleccionar...</option>';
+  profiles.forEach(function(p){
+    var o=document.createElement("option");o.value=p.name;o.textContent=p.name;sel.appendChild(o);
+  });
+  if(!profiles.length){
+    var o=document.createElement("option");o.value="";o.disabled=true;
+    o.textContent="Sin perfiles — creá uno en SwimTimer > Config";sel.appendChild(o);
+  }
+}
+document.getElementById("sel-athlete").addEventListener("change",function(){
+  S.athleteName=this.value;
+  if(S.athleteName)renderToday();
+  else document.getElementById("today-section").innerHTML="";
+  document.getElementById("blocks-section").style.display="none";
+});
+
+function renderToday(){
+  var key=todayKey();
+  var entry=MC[key];
+  var sec=document.getElementById("today-section");
+  var DAYS=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+  var d=new Date();
+  var dateStr=DAYS[d.getDay()]+" "+d.getDate()+" de "+["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"][d.getMonth()];
+  if(!entry){
+    sec.innerHTML='<div class="today-card"><div class="today-date">'+dateStr+'</div>'+
+      '<div class="today-rest">Sin sesión programada para este día.</div></div>';
+    return;
+  }
+  S.todayEntry=entry;
+  if(entry.type==="rest"||entry.type==="competition"){
+    sec.innerHTML='<div class="today-card"><div class="today-date">'+dateStr+'</div>'+
+      '<div class="today-type">'+esc(entry.desc)+'</div>'+
+      (entry.phase?'<div class="today-phase">'+esc(entry.phase)+'</div>':'')+
+      '</div>';
+    return;
+  }
+  var pctStr=entry.pctMin===entry.pctMax?entry.pctMin+"%":entry.pctMin+"–"+entry.pctMax+"%";
+  sec.innerHTML='<div class="today-card"><div class="today-date">'+dateStr+'</div>'+
+    '<div class="today-type">'+esc(entry.desc)+'</div>'+
+    (entry.phase?'<div class="today-phase">'+esc(entry.phase)+'</div>':'')+
+    '<span class="today-pct">'+pctStr+'</span>'+
+  '</div>'+
+  '<button class="btn-ai" id="btn-generate"><div class="ai-dot"></div>Pegar sesión JSON desde Claude</button>';
+  document.getElementById("btn-generate").addEventListener("click",showPastePanel);
+}
+
+// ── AI SESSION GENERATION ────────────────────────────────────────
+var SKILL_CONTEXT = [
+  "Sos el asistente de entrenamiento de Daniel Wottrich. Generás sesiones de natación sprint para Mariano (15 años, velocista, 50m/100m freestyle).",
+  "FÓRMULA: tiempo_objetivo = ref_tiempo / (% / 100)",
+  "REFERENCIAS (usar las provistas por el perfil del atleta)",
+  "ESTRUCTURA POR TIPO:",
+  "VELOCIDAD: Pateo 1000-1500m / Calentamiento 400m 65% / Pre-serie 4×25m 90% RI:60s / Serie principal NxDistancia % dado RC:180s / VaC 200m.",
+  "RV: Calentamiento 600m / Pre-serie 2×50m 80% RI:90s / Serie NxDistancia % dado RI:120s / VaC 300m.",
+  "FUERZA: Calentamiento 400m / Pre-serie 4×25m 80% RI:45s / Serie con material NxDistancia % dado RI:segun material / VaC 200m.",
+  "TÉCNICA: Calentamiento 400m / Pre-serie 4×25m drills / Serie 6×50m 72% RI:30s / VaC 200m.",
+  "CONTROL: Calentamiento 800m / Pre-serie 3×25m 90% RC:120s / Control NxDistancia % dado RC:540s / VaC 400m.",
+  "TAPER: Sin gym. Sin material. Volumen mínimo. Solo técnica y calidad.",
+  "RETORNÁ SOLO JSON válido. Sin texto adicional. Sin comillas dobles dentro de strings de notes.",
+  "FORMATO:",
+  '[{"type":"warmup","name":"Calentamiento","reps":1,"distance":"400m","distKey":"400m","intensity":65,"restSec":0,"note":"Libre suave continuo"},',
+  '{"type":"preserie","name":"Pre-serie","reps":4,"distance":"25m","distKey":"25m","intensity":90,"restSec":60,"note":"Activacion patron motor"},',
+  '{"type":"velocity","name":"Velocidad pura","reps":6,"distance":"25m","distKey":"25m","intensity":98,"restSec":180,"note":"Maxima calidad tecnica RC completo"},',
+  '{"type":"cooldown","name":"Vuelta a la calma","reps":1,"distance":"200m","distKey":"200m","intensity":60,"restSec":0,"note":"Suave menor 65 porciento"}]'
+].join("\n");
+
+function showPastePanel(){
+  document.getElementById("blocks-section").style.display="none";
+  var existing=document.getElementById("paste-panel");
+  if(existing){existing.style.display="block";return;}
+  var entry=S.todayEntry;
+  var pctStr=entry?(entry.pctMin===entry.pctMax?entry.pctMin:entry.pctMin+"-"+entry.pctMax)+"%":"";
+  var prompt="";
+  if(entry){
+    prompt="Generá la sesión de "+entry.desc+" ("+pctStr+") para "+S.athleteName+" en JSON.\n"+
+      "Usa exactamente este formato de bloques (array JSON):\n"+
+      '[{"type":"warmup","name":"Calentamiento","reps":1,"distance":"400m","distKey":"400m","intensity":65,"restSec":0,"note":"texto"},'+
+      '{"type":"velocity","name":"Velocidad pura","reps":6,"distance":"25m","distKey":"25m","intensity":98,"restSec":180,"note":"texto"}]';
+  }
+  var panel=document.createElement("div");
+  panel.id="paste-panel";
+  panel.style.cssText="background:var(--surf);border-radius:var(--r);border:.5px solid var(--bb2);padding:1rem;margin-top:10px;";
+  panel.innerHTML=
+    '<div style="font-size:11px;color:var(--bt);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Paso 1 — Pedile a Claude este prompt</div>'+
+    '<div style="background:var(--surf2);border-radius:var(--rs);padding:10px;font-size:12px;color:var(--muted);font-family:var(--mono);margin-bottom:10px;white-space:pre-wrap;word-break:break-word;line-height:1.5;" id="prompt-txt">'+esc(prompt)+'</div>'+
+    '<button id="btn-copy-prompt" style="width:100%;padding:9px;border-radius:var(--rs);border:.5px solid var(--bb2);background:var(--bd);color:var(--bt);font-size:13px;cursor:pointer;font-family:inherit;margin-bottom:12px">Copiar prompt</button>'+
+    '<div style="font-size:11px;color:var(--bt);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Paso 2 — Pegá el JSON que te devuelve Claude</div>'+
+    '<textarea id="json-paste" placeholder='[{"type":"warmup",...}]' style="width:100%;height:120px;padding:8px;border-radius:var(--rs);border:.5px solid var(--b2);background:var(--surf2);color:var(--text);font-size:12px;font-family:var(--mono);resize:none;-webkit-appearance:none;"></textarea>'+
+    '<button id="btn-load-json" style="width:100%;padding:12px;border-radius:var(--r);border:none;background:var(--green);color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:8px">Cargar sesión</button>'+
+    '<div id="json-error" style="display:none;font-size:12px;color:var(--rt);margin-top:6px;"></div>';
+  document.getElementById("today-section").appendChild(panel);
+
+  document.getElementById("btn-copy-prompt").addEventListener("click",function(){
+    var txt=document.getElementById("prompt-txt").textContent;
+    if(navigator.clipboard){navigator.clipboard.writeText(txt);}
+    this.textContent="Copiado ✓";setTimeout(function(){document.getElementById("btn-copy-prompt").textContent="Copiar prompt";},1500);
+  });
+  document.getElementById("btn-load-json").addEventListener("click",loadPastedJSON);
+}
+
+function loadPastedJSON(){
+  var raw=document.getElementById("json-paste").value.trim();
+  var errEl=document.getElementById("json-error");
+  if(!raw){errEl.style.display="block";errEl.textContent="Pegá el JSON primero.";return;}
+  var json=raw.replace(/```json|```/g,"").trim();
+  var blocks;
+  try{blocks=JSON.parse(json);}catch(e){errEl.style.display="block";errEl.textContent="JSON inválido: "+e.message;return;}
+  if(!Array.isArray(blocks)||!blocks.length){errEl.style.display="block";errEl.textContent="El JSON debe ser un array de bloques.";return;}
+  errEl.style.display="none";
+  S.blocks=blocks.map(function(b){
+    b.id=uid();b.completedReps=[];
+    var refMs=getRef(S.athleteName,b.distKey||b.distance||"");
+    b.targetMs=msTarget(refMs,b.intensity||0);b.refMs=refMs;
+    return b;
+  });
+  var panel=document.getElementById("paste-panel");
+  if(panel)panel.style.display="none";
+  renderBlocks();
+  document.getElementById("blocks-section").style.display="block";
+}
+
+document.getElementById("btn-regen").addEventListener("click",function(){
+  document.getElementById("blocks-section").style.display="none";
+  var panel=document.getElementById("paste-panel");
+  if(panel){panel.style.display="block";}else{showPastePanel();}
+});
+
+function renderBlocks(){
+  var container=document.getElementById("blocks-list");
+  var html="";
+  S.blocks.forEach(function(b){
+    var tgt=b.targetMs>0?fmtS(b.targetMs):"—";
+    html+='<div class="block-card '+esc(b.type||"warmup")+'" id="bcard-'+b.id+'">'+
+      '<div class="block-header">'+
+        '<span class="block-tag '+esc(b.type||"warmup")+'">'+esc((b.type||"").toUpperCase())+'</span>'+
+        '<span class="block-name">'+esc(b.name)+'</span>'+
+        '<button class="block-edit-btn" data-id="'+b.id+'">✎</button>'+
+      '</div>'+
+      '<div class="block-details">'+
+        '<div class="bchip"><span class="bchip-lbl">Series</span><span class="bchip-val">'+b.reps+'×'+esc(b.distance)+'</span></div>'+
+        '<div class="bchip"><span class="bchip-lbl">Intensidad</span><span class="bchip-val">'+b.intensity+'%</span></div>'+
+        '<div class="bchip"><span class="bchip-lbl">Objetivo</span><span class="bchip-val tgt">'+tgt+'</span></div>'+
+        '<div class="bchip"><span class="bchip-lbl">Descanso</span><span class="bchip-val">'+fmtSec(b.restSec)+'</span></div>'+
+      '</div>'+
+      (b.note?'<div class="block-note">'+esc(b.note)+'</div>':'')+
+      '<div class="block-edit-panel" id="bedit-'+b.id+'">'+
+        '<div class="ef"><label>Reps</label><input type="number" id="er-'+b.id+'" value="'+b.reps+'" min="1" max="30"></div>'+
+        '<div class="ef"><label>%</label><input type="number" id="ep-'+b.id+'" value="'+b.intensity+'" min="50" max="100"></div>'+
+        '<div class="ef"><label>Desc(s)</label><input type="number" id="es-'+b.id+'" value="'+b.restSec+'" min="0"></div>'+
+        '<button class="ea" data-id="'+b.id+'">OK</button>'+
+      '</div>'+
+    '</div>';
+  });
+  container.innerHTML=html;
+  container.querySelectorAll(".block-edit-btn").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var p=document.getElementById("bedit-"+this.dataset.id);
+      if(p)p.className="block-edit-panel"+(p.classList.contains("open")?"":" open");
+    });
+  });
+  container.querySelectorAll(".ea").forEach(function(btn){
+    btn.addEventListener("click",function(){
+      var id=this.dataset.id;
+      var b=S.blocks.find(function(x){return x.id===id;});if(!b)return;
+      b.reps=parseInt(document.getElementById("er-"+id).value)||b.reps;
+      b.intensity=parseInt(document.getElementById("ep-"+id).value)||b.intensity;
+      b.restSec=parseInt(document.getElementById("es-"+id).value)||0;
+      b.targetMs=msTarget(b.refMs,b.intensity);
+      document.getElementById("bedit-"+id).className="block-edit-panel";
+      renderBlocks();
+    });
+  });
+}
+
+document.getElementById("btn-start").addEventListener("click",function(){
+  if(!S.blocks.length)return;
+  S.currentBlockIdx=0;S.completedBlocks=[];S.currentRepN=0;S.phase="idle";
+  S.blocks.forEach(function(b){b.completedReps=[];});
+  showTab("exec");renderExecState();
+});
+
+// ── EXECUTE ─────────────────────────────────────────────────────
+function curBlock(){return S.blocks[S.currentBlockIdx]||null;}
+
+function timerLoop(){
+  var now=performance.now();
+  if(S.phase==="repping"){
+    S.repElapsed=now-S.repStart;
+    document.getElementById("exec-time").textContent=fmt(S.repElapsed);
+  } else if(S.phase==="resting"){
+    S.restElapsed=now-S.restStart;
+    var b=curBlock();
+    var remaining=b?Math.max(0,b.restSec*1000-S.restElapsed):0;
+    document.getElementById("exec-time").textContent=fmt(remaining);
+    if(b&&b.restSec>0&&remaining<=0){stopLoop();autoEndRest();return;}
+  }
+  S.raf=requestAnimationFrame(timerLoop);
+}
+function ensureLoop(){if(!S.raf)S.raf=requestAnimationFrame(timerLoop);}
+function stopLoop(){if(S.raf){cancelAnimationFrame(S.raf);S.raf=null;}}
+
+function renderExecState(){
+  var b=curBlock();
+  if(!b){finishSession();return;}
+  var totalReps=S.blocks.reduce(function(a,x){return a+x.reps;},0);
+  var doneReps=S.blocks.slice(0,S.currentBlockIdx).reduce(function(a,x){return a+x.reps;},0)+S.currentRepN;
+  var pct=totalReps>0?Math.round((doneReps/totalReps)*100):0;
+  document.getElementById("exec-prog-fill").style.width=pct+"%";
+  document.getElementById("exec-prog-txt").textContent=doneReps+"/"+totalReps;
+  document.getElementById("exec-block-nm").textContent=b.name+" · "+b.reps+"×"+b.distance+" al "+b.intensity+"%";
+  var tgt=b.targetMs>0?"Objetivo: "+fmtS(b.targetMs):"Sin referencia";
+  document.getElementById("exec-tgt").innerHTML='<span>'+tgt+'</span>';
+
+  var btns=document.getElementById("exec-btns");btns.innerHTML="";
+  var phase=document.getElementById("exec-phase");
+  var timeEl=document.getElementById("exec-time");
+  var repInfo=document.getElementById("exec-rep-info");
+
+  if(S.phase==="idle"){
+    phase.textContent="Listo";phase.className="exec-phase";
+    timeEl.textContent="00:00.000";timeEl.className="exec-time";
+    repInfo.textContent=b.reps>1?"0 / "+b.reps+" reps":"";
+    var bS=document.createElement("button");bS.className="eb start";
+    bS.textContent=b.reps>1?"Iniciar Rep 1":"Iniciar";
+    bS.addEventListener("click",startRep);btns.appendChild(bS);
+  } else if(S.phase==="repping"){
+    phase.textContent="Rep "+S.currentRepN+" — en curso";phase.className="exec-phase repping";
+    timeEl.className="exec-time repping";
+    repInfo.textContent=S.currentRepN+" / "+b.reps;
+    var bM=document.createElement("button");bM.className="eb mark";bM.textContent="Fin rep";
+    bM.addEventListener("click",endRep);btns.appendChild(bM);
+    var bSt=document.createElement("button");bSt.className="eb stop";bSt.textContent="Terminar bloque";
+    bSt.addEventListener("click",stopBlock);btns.appendChild(bSt);
+  } else if(S.phase==="resting"){
+    phase.textContent="Descanso";phase.className="exec-phase resting";
+    timeEl.className="exec-time resting";
+    repInfo.textContent=S.currentRepN+" / "+b.reps+" completada"+(S.currentRepN!==1?"s":"");
+    var bNR=document.createElement("button");bNR.className="eb next-rep";
+    bNR.textContent="Iniciar Rep "+(S.currentRepN+1);
+    bNR.addEventListener("click",startNextRep);btns.appendChild(bNR);
+    var bSt2=document.createElement("button");bSt2.className="eb stop";bSt2.textContent="Terminar bloque";
+    bSt2.addEventListener("click",stopBlock);btns.appendChild(bSt2);
+  } else if(S.phase==="block-done"){
+    phase.textContent="Bloque completado";phase.className="exec-phase done";
+    timeEl.className="exec-time done";
+    repInfo.textContent=b.completedReps.length+" rep"+(b.completedReps.length!==1?"s":"")+" completada"+(b.completedReps.length!==1?"s":"");
+    var bNB=document.createElement("button");bNB.className="eb next-block";bNB.textContent="Siguiente bloque →";
+    bNB.addEventListener("click",nextBlock);btns.appendChild(bNB);
+  }
+  renderMiniReps();
+}
+
+function startRep(){
+  var b=curBlock();if(!b)return;
+  S.currentRepN++;S.repStart=performance.now();S.repElapsed=0;S.phase="repping";
+  ensureLoop();renderExecState();
+}
+function endRep(){
+  var b=curBlock();if(!b)return;
+  stopLoop();
+  S.repElapsed=performance.now()-S.repStart;
+  var comp=calcComp(S.repElapsed,b.targetMs);
+  b.completedReps.push({n:S.currentRepN,time:Math.round(S.repElapsed),targetMs:b.targetMs,comp:comp,restTime:0});
+  if(S.currentRepN>=b.reps){S.phase="block-done";renderExecState();return;}
+  S.phase="resting";S.restStart=performance.now();S.restElapsed=0;
+  if(b.restSec<=0){renderExecState();setTimeout(startNextRep,100);}
+  else{ensureLoop();renderExecState();}
+}
+function autoEndRest(){
+  var b=curBlock();if(!b)return;
+  if(b.completedReps.length>0)b.completedReps[b.completedReps.length-1].restTime=Math.round(S.restElapsed);
+  startNextRep();
+}
+function startNextRep(){
+  stopLoop();
+  var b=curBlock();if(!b)return;
+  if(b.completedReps.length>0&&S.phase==="resting")
+    b.completedReps[b.completedReps.length-1].restTime=Math.round(performance.now()-S.restStart);
+  S.phase="idle";renderExecState();setTimeout(startRep,50);
+}
+function stopBlock(){
+  stopLoop();
+  var b=curBlock();
+  if(b&&S.phase==="repping"){
+    S.repElapsed=performance.now()-S.repStart;
+    var comp=calcComp(S.repElapsed,b.targetMs);
+    b.completedReps.push({n:S.currentRepN,time:Math.round(S.repElapsed),targetMs:b.targetMs,comp:comp,restTime:0});
+  }
+  S.phase="block-done";renderExecState();
+}
+function nextBlock(){
+  stopLoop();
+  var b=curBlock();
+  if(b)S.completedBlocks.push({name:b.name,type:b.type,distance:b.distance,intensity:b.intensity,targetMs:b.targetMs,reps:b.completedReps.slice()});
+  S.currentBlockIdx++;S.currentRepN=0;S.phase="idle";renderExecState();
+}
+function finishSession(){stopLoop();var b=curBlock();if(b&&b.completedReps.length>0)S.completedBlocks.push({name:b.name,type:b.type,distance:b.distance,intensity:b.intensity,targetMs:b.targetMs,reps:b.completedReps.slice()});showTab("summary");renderSummary();}
+
+document.getElementById("btn-skip").addEventListener("click",function(){
+  stopLoop();
+  var b=curBlock();
+  if(b&&S.phase==="repping"){S.repElapsed=performance.now()-S.repStart;var comp=calcComp(S.repElapsed,b.targetMs);b.completedReps.push({n:S.currentRepN,time:Math.round(S.repElapsed),targetMs:b.targetMs,comp:comp,restTime:0});}
+  nextBlock();
+});
+document.getElementById("btn-end").addEventListener("click",function(){stopLoop();finishSession();});
+
+function renderMiniReps(){
+  var b=curBlock();var c=document.getElementById("exec-reps-list");
+  if(!b||!b.completedReps.length){c.innerHTML="";return;}
+  var h='<div style="display:flex;font-size:9px;color:var(--faint);text-transform:uppercase;padding:5px 0 3px;border-bottom:.5px solid var(--b1);"><span style="width:22px">#</span><span style="flex:1;text-align:right">tiempo</span><span style="width:68px;text-align:right">dif</span><span style="width:56px;text-align:right">%</span></div>';
+  b.completedReps.slice().reverse().forEach(function(r){
+    var diff=r.comp?'<span class="rd2 '+r.comp.cls+'">'+r.comp.diffStr+'</span>':'<span class="rd2 c-none">—</span>';
+    var pct=r.comp?'<span class="rp2 '+r.comp.cls+'">'+r.comp.pctStr+'</span>':'<span class="rp2 c-none">—</span>';
+    h+='<div class="rep-row"><span class="rn">'+r.n+'</span><span class="rt2">'+fmtS(r.time)+'</span>'+diff+pct+'</div>';
+  });
+  c.innerHTML=h;
+}
+
+// ── SUMMARY ─────────────────────────────────────────────────────
+function renderSummary(){
+  var content=document.getElementById("summary-content");
+  var blocks=S.completedBlocks;
+  if(!blocks.length){content.innerHTML='<div class="empty-h">No hay datos aún.</div>';return;}
+  var allReps=[];blocks.forEach(function(b){if(b.reps&&b.reps.length)b.reps.forEach(function(r){allReps.push(r);});});
+  var withComp=allReps.filter(function(r){return r.comp;});
+  var avgPct=withComp.length?withComp.reduce(function(a,r){return a+parseFloat(r.comp.pctStr);},0)/withComp.length:0;
+  var best=allReps.reduce(function(x,r){return(!x||r.time<x.time)?r:x;},null);
+  var html='<div class="sum-export"><button class="btn-exp xlsx" id="sum-xlsx">↓ Excel</button><button class="btn-exp pdf" id="sum-pdf">↓ PDF</button></div>';
+  html+='<div class="sum-section"><div class="sum-sec-hdr"><span class="sum-sec-name">'+esc(S.athleteName)+'</span><span class="sum-sec-badge">'+allReps.length+' reps</span></div>';
+  html+='<div class="sum-stats">'+
+    (avgPct>0?'<div class="stat"><span class="stat-lbl">% prom</span><span class="stat-val '+(avgPct>=97?"good":avgPct>=90?"warn":"bad")+'">'+avgPct.toFixed(1)+'%</span></div>':"")+
+    (best?'<div class="stat"><span class="stat-lbl">Mejor rep</span><span class="stat-val good">'+fmtS(best.time)+'</span></div>':"")+
+    '<div class="stat"><span class="stat-lbl">Bloques</span><span class="stat-val">'+blocks.length+'</span></div>'+
+  '</div></div>';
+  blocks.forEach(function(b){
+    if(!b.reps||!b.reps.length)return;
+    var wc=b.reps.filter(function(r){return r.comp;});
+    var ap=wc.length?wc.reduce(function(a,r){return a+parseFloat(r.comp.pctStr);},0)/wc.length:0;
+    var bst=b.reps.reduce(function(x,r){return(!x||r.time<x.time)?r:x;},null);
+    html+='<div class="sum-section"><div class="sum-sec-hdr">'+
+      '<span class="block-tag '+esc(b.type||"")+'">'+esc((b.type||"").toUpperCase())+'</span>'+
+      '<span class="sum-sec-name">'+esc(b.name)+'</span>'+
+      '<span class="sum-sec-badge">'+b.reps.length+'×'+esc(b.distance)+'</span>'+
+    '</div><div class="sum-stats">'+
+      (b.targetMs?'<div class="stat"><span class="stat-lbl">Objetivo</span><span class="stat-val">'+fmtS(b.targetMs)+'</span></div>':"")+
+      (ap>0?'<div class="stat"><span class="stat-lbl">% prom</span><span class="stat-val '+(ap>=97?"good":ap>=90?"warn":"bad")+'">'+ap.toFixed(1)+'%</span></div>':"")+
+      (bst?'<div class="stat"><span class="stat-lbl">Mejor</span><span class="stat-val good">'+fmtS(bst.time)+'</span></div>':"")+
+    '</div>'+
+    '<div class="sum-rep-hdr"><span>#</span><span>tiempo</span><span>dif</span><span>%</span><span>descanso</span></div>';
+    b.reps.forEach(function(r){
+      var diff=r.comp?'<span class="srd '+r.comp.cls+'">'+r.comp.diffStr+'</span>':'<span class="srd c-none">—</span>';
+      var pct=r.comp?'<span class="srp '+r.comp.cls+'">'+r.comp.pctStr+'</span>':'<span class="srp c-none">—</span>';
+      var rest=r.restTime>0?'<span class="srr">'+fmt(r.restTime)+'</span>':'<span class="srr c-none">—</span>';
+      html+='<div class="sum-rep-row"><span class="srn">'+r.n+'</span><span class="srt">'+fmtS(r.time)+'</span>'+diff+pct+rest+'</div>';
+    });
+    html+='</div>';
+  });
+  content.innerHTML=html;
+  document.getElementById("sum-xlsx").addEventListener("click",exportXLSX);
+  document.getElementById("sum-pdf").addEventListener("click",function(){window.print();});
+}
+
+function exportXLSX(){
+  if(typeof XLSX==="undefined"){alert("Excel no disponible.");return;}
+  var wb=XLSX.utils.book_new();
+  S.completedBlocks.forEach(function(b){
+    if(!b.reps||!b.reps.length)return;
+    var hC=b.reps.some(function(r){return r.comp;});
+    var hR=b.reps.some(function(r){return r.restTime>0;});
+    var header=["Atleta","Bloque","Rep","Distancia","Objetivo (s)","Objetivo","Tiempo (s)","Tiempo"];
+    if(hC)header.push("Dif (s)","% Intensidad");
+    if(hR)header.push("Descanso");
+    var rows=[header];
+    b.reps.forEach(function(r){
+      var row=[S.athleteName,b.name,r.n,b.distance,
+        b.targetMs>0?parseFloat((b.targetMs/1000).toFixed(3)):"",
+        b.targetMs>0?fmtS(b.targetMs):"",
+        parseFloat((r.time/1000).toFixed(3)),fmtS(r.time)];
+      if(hC){if(r.comp)row.push(parseFloat((r.comp.diff/1000).toFixed(3)),parseFloat(r.comp.pctStr));else row.push("","");}
+      if(hR)row.push(r.restTime>0?fmt(r.restTime):"");
+      rows.push(row);
+    });
+    var ws=XLSX.utils.aoa_to_sheet(rows);
+    ws["!cols"]=[{wch:12},{wch:22},{wch:5},{wch:8},{wch:12},{wch:10},{wch:12},{wch:10},{wch:12},{wch:12},{wch:12}];
+    XLSX.utils.book_append_sheet(wb,ws,(b.name+" "+b.distance).slice(0,31));
+  });
+  XLSX.writeFile(wb,"wsession_"+S.athleteName.replace(/\s+/g,"_")+"_"+new Date().toISOString().slice(0,10)+".xlsx");
+}
+
+// ── NAV ─────────────────────────────────────────────────────────
+function showTab(v){
+  ["plan","exec","summary"].forEach(function(id){
+    document.getElementById("view-"+id).className="view"+(v===id?" active":"");
+    document.getElementById("tab-"+id).className="tab"+(v===id?" active":"");
+  });
+}
+
+loadAthletes();
+</script>
+</body>
+</html>
